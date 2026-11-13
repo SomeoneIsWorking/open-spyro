@@ -5,7 +5,7 @@
 
 SDATA(g_nCameraManualYawInput, 4);
 
-/* R1/L1 camera rotate (0x80035f58, 92 bytes): writes +-0x400 to
+/* L2/R2 camera rotate (0x80035f58, 92 bytes): writes +-0x400 to
    g_nCameraManualYawInput, the yaw-drive override AdvanceCameraSpringStep
    consumes. Suppressed by request bit 0x1000 or while the camera is stuck. */
 void UpdateCameraManualYawInput(void) {

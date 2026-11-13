@@ -70,7 +70,7 @@ SDATA(g_nCameraSpringReengageCountdown, 4);
 
 /* Per-frame 6-axis camera spring step (0x80034ce8, 2748 bytes). `column` picks
    the tuning set (0..5) in the drive / damping / snap tables (one 6-entry row
-   per axis). Axes: yaw (manual R1/L1 override, passive hold, idle look-around
+   per axis). Axes: yaw (manual L2/R2 override, passive hold, idle look-around
    freeze), pitch, distance, roll, pitch bias, yaw bias; each springs its
    state toward the target and adds state >> 8 to the spring angle. The yaw
    state is clamped in the headbash state, with option 0x40 in modes 9/3, and
