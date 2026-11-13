@@ -120,6 +120,14 @@ Statuses: ✅ re-verified · 🟡 re-partial · 🔬 in-progress · ⬜ todo · 
 - where: titles/spyro1/core/frame/frame_draw.*; titles/spyro1/render/ordering_table.*; titles/spyro1/render/screen_overlays.*; titles/spyro1/render/hud_anchor.*; titles/spyro1/core/runtime/runtime.*; titles/spyro1/render/terrain_*; titles/spyro1/render/{actor,lit_actor_emitter,local_bins,sprite_queue,paired_actor}*; titles/spyro1/render/{sky,drop_shadow,flame,glow,particle,portal,moby_shadow}*
 - gap: the census attributes by the nearest `jalr`-reached function, so an unkeyed primitive shows as GamestateDraw `0x8001ED5C`. Its `jal` callee without a producer: motion trails `0x800189F0`, pushed only by moby type 104 in the level code of levels 50 and 63 (WAD entries 57 and 75) and not reached; the demo overlay `0x80018908` queues HUD mobys the sprite queue keys, and the rescue star `0x80058864` has its producer. Not reached on the attract route: Spyro's two-sided quads, the merge's span clamp and his far cull.
 
+### spyro1.text-glyphs — Spyro 1's text is mesh letters, with no button icons
+- status: re-verified
+- deps: spyro1.record
+- evidence: Spyro 1 has no bitmap font: BuildTextSprites 0x800181AC and BuildTextSpriteChain 0x80017FE4 (open-spyro src/c) turn each character into a 0x58-byte actor of a glyph type (ACTOR_TYPE_LETTER_GLYPH 'A'-'Z', ACTOR_TYPE_DIGIT_GLYPH '0'-'9', and ! , ? . / % ^ + types; anything else a comma raised to an apostrophe), which the shaded moby queue 0x80022A2C draws as a lit mesh on its screen-space path (render radius bit 7, docs/notes/spyro1-field-draw-families.md). Every string, menus and dialogue included, is polygons the record rasterizes at the internal resolution, and no glyph type is a pad button.
+- where: titles/spyro1/render/drawn_records.*
+- gap: none
+- notes: Plans 0206 and 0207 have nothing to replace on Spyro 1: its letters are geometry, sharp at any internal resolution, and its text names no button with an icon.
+
 ## Spyro 1 override differential coverage
 
 Moved from the override sources; each line is the route evidence for one native body.
