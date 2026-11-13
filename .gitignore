@@ -55,3 +55,6 @@ __pycache__/
 notes.md
 
 .ruff_cache/
+
+# long-lived ignored inputs and derived assets (Ghidra projects, decompiled output)
+env-assets/
