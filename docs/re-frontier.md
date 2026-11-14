@@ -136,6 +136,22 @@ Statuses: ✅ re-verified · 🟡 re-partial · 🔬 in-progress · ⬜ todo · 
 - gap: none
 - notes: psx-spyro issue 0250. Ending it early would need the camera pitch or the glide's camera preset written, which leaves Spyro mid-glide in GS_GAMEPLAY; it stays unskippable.
 
+### spyro1.title-layout — Spyro 1's title screen has no edge-anchored element
+- status: re-verified
+- deps: spyro1.record
+- evidence: Titlescreen_Draw 0x8007CEE4 (src/overlays/titlescreen/Titlescreen_Draw.c) places every 2D element of modes 0, 1 and 2 through Titlescreen_EmitSpriteQuad 0x8007CD38(x, y, sprite, colour), which adds one POLY_FT4 with AddPrimToOT; its size comes from g_aTitlescreenSprites 0x8006FACC (8 bytes: tpage, clut, w, h, u, v). On the 512-wide screen: logo (sprite 0, 255x128) at x 128, columns 128..383, in its slide-in, rest and slide-out; PRESS START (11, 128x16) at x 192, 192..320; the menu frame's halves (1, 148x128) at x 108 and mirrored at x 255, 108..403; message strips (24..51, 255x15) at x 128; option pairs at x 128 and 256 inside the frame; save slots (8/9, 80x48) at 140 + 80i, 140..380. Each is symmetric about x 256 or inside the frame, so every one is centred. The scene behind is BuildRenderEntityLists, BuildActorDrawList, EmitActorDrawList, RenderWorldChunks(-1) and EmitSkyMesh, the same drawers as play.
+- where: titles/spyro1/core/frame/draw_section.*; game/render/hud/ui_anchor.*
+- gap: none
+- notes: psx-spyro S002. Shown at 4:3 and 16:9 in psx-spyro `scratch/title16/s002_crops.png`.
+
+### spyro1.story-intro-cadence — TSM_Demo's card runs one logic frame a field
+- status: re-verified
+- deps: spyro1.record
+- evidence: GamestateDraw sends GS_TITLE with m_Mode TSM_Demo (3) to StoryIntro_Draw 0x8001E6B8 (src/c/StoryIntro_Draw.c), the card for all three exit paths (IN THE WORLD OF DRAGONS, THE ADVENTURE BEGINS/CONTINUES, ENTERING DEMO MODE). It ends DrawSync(0); VSync(0); PutDispEnv; PutDrawEnv; DrawOTag with no `VSync(-1) - last < 2` wait, which Titlescreen_Draw 0x8007CEE4 has, and StoryIntro_Update 0x80032B08 advances g_nStoryIntroTimer by one a call (src/c/StoryIntro_Update.c). So each field is a logic frame: the card already moves at the field rate and has no in-between to draw. Measured in psx-spyro (`scratch/title16/card.log`): fences 1992..2377 present fields=1/1 with the logic count rising by one each; the title before and the demo after are fields=2/2.
+- where: titles/spyro1/core/frame/draw_section.cpp:DrawSection::replays
+- gap: none
+- notes: psx-spyro S020.
+
 ## Spyro 1 override differential coverage
 
 Moved from the override sources; each line is the route evidence for one native body.
