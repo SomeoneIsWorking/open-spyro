@@ -128,6 +128,14 @@ Statuses: ✅ re-verified · 🟡 re-partial · 🔬 in-progress · ⬜ todo · 
 - gap: none
 - notes: Plans 0206 and 0207 have nothing to replace on Spyro 1: its letters are geometry, sharp at any internal resolution, and its text names no button with an icon.
 
+### spyro1.arrival-camera — Spyro 1's arrival glide has no count to end it on
+- status: re-verified
+- deps: spyro1.record
+- evidence: TickLevelTransitionStream 0x80015370 case 0xd sets GS_ARRIVAL_CAMERA (9) when the arrival camera is scripted (ActivateScriptedCameraView) and Spyro glides in (SPYRO_SUB_GLIDE_ARRIVE). CameraSettle_Update 0x8002E000 (src/c/CameraSettle_Update.c, matched) runs TickSpyroGameplayFrame and UpdateCameraFrame every update and returns to GS_GAMEPLAY only when the camera pitch g_anCameraEulerPitchBlock[0], wrapped to signed 12 bits, is below -0x200 or g_pCameraTargetParams has become g_anCameraParamTransitionGlideIn. Neither is a count: both are the result of Spyro's glide and the camera following it, and the state reads no pad. Through the portal it lasts 34 updates (psx-spyro scratch/loadpic/s1c.trace).
+- where: titles/spyro1/core/frame/transition_skip.*
+- gap: none
+- notes: psx-spyro issue 0250. Ending it early would need the camera pitch or the glide's camera preset written, which leaves Spyro mid-glide in GS_GAMEPLAY; it stays unskippable.
+
 ## Spyro 1 override differential coverage
 
 Moved from the override sources; each line is the route evidence for one native body.
