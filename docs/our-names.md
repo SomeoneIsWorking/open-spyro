@@ -42,7 +42,9 @@ The symbol map (`config/symbol_addrs.txt`) keeps the tree's names; ours enter it
 | `0x800190D4` | `DrawFullscreenTint` | `DrawFade` | `titles/spyro1/core/frame/draw_section.cpp` |  |
 | `0x8001919C` | `EmitTexturedQuad` | `TexturedQuad` | `titles/spyro1/render/hud_anchor.h` |  |
 | `0x80019300` | `EnqueueHudSprites` | `DrawCollectables` | `titles/spyro1/core/frame/draw_section.cpp` |  |
+| `0x8001A050` | `LevelTransition_Draw` | `LevelTransitionDraw` | `titles/spyro1/core/frame/draw_section.cpp` | GS_LevelTransition and GS_ArrivalCamera: tally, Spyro and the sky join at its DrawSync, 0x8001A334. |
 | `0x8001A40C` | `PauseMenu_Draw` | `MenuDraw` | `titles/spyro1/core/frame/draw_section.cpp` | func_8001A40C, the menus: D_800758B8 counts its draws; the first stores the scene greyed into VRAM, every later one opens with PutDrawEnv, which the real frame applied, and ends with DrawOTag(func_80016784(0)) at 0x8001C598. |
+| `0x8001C694` | `MenuTransition_Draw` | `ExitLevelDraw` | `titles/spyro1/core/frame/draw_section.cpp` | GS_ExitLevel: pass 0 opens with PutDrawEnv, LoadImage and DrawSync, pass 1 with the fog store and PutDrawEnv; both reach LinkOTPrimitives at 0x8001C96C before DrawOTag. |
 | `0x8001CFDC` | `DragonRescue_Draw` | `DragonDraw` | `titles/spyro1/core/frame/draw_section.cpp` | func_8001CFDC, GS_Dragon: every m_State's drawers, fade and border join at its DrawSync, 0x8001D644. |
 | `0x8001D718` | `SaveLoadMenu_Draw` | `FairyDraw` | `titles/spyro1/core/frame/draw_section.cpp` | func_8001D718, GS_Fairy: its drawers, menu text and border end at its DrawSync, 0x8001E168. |
 | `0x8001E24C` | `ActorCutscene_Draw` | `BalloonistDraw` | `titles/spyro1/core/frame/draw_section.cpp` | func_8001E24C, GS_Balloonist: its dialogue, mobys and border end at its DrawSync, 0x8001E5E4. |
@@ -70,7 +72,6 @@ The symbol map (`config/symbol_addrs.txt`) keeps the tree's names; ours enter it
 | `0x80034204` | `ComputeCameraOrbitOffset` | `SphericalToCartesian` | `titles/spyro1/core/camera/native_camera.cpp` | `jal` at 0x80034414 |
 | `0x800342F8` | `UpdateCameraEulerAngles` | `CameraRotationFromSphere` | `titles/spyro1/core/camera/native_camera.cpp` | `jal` at 0x80034450 |
 | `0x80034358` | `ResetCameraStateToTarget` | `ResetCameraToSphericalPreset` | `titles/spyro1/core/camera/native_camera.cpp` | `jal` at 0x800347E4 |
-| `0x80034C84` | `SnapCameraToTarget` | `CameraForceToDestination` | `titles/spyro1/core/frame/draw_cuts.cpp` |  |
 | `0x8003D194` | `TickSpyroAnimStateMachine` | `ResetObjectMotion` | `titles/spyro1/core/player/native_player_physics.cpp` | `jal` at 0x8004A918 |
 | `0x8003EA68` | `ChangeSpyroState` | `SetPlayerState` | `titles/spyro1/core/player/native_player_physics.cpp` | `jal` at 0x8004A834 |
 | `0x80043FE4` | `IntegrateSpyroMotionForSubstep` | `InitLevelObject` | `titles/spyro1/core/player/native_player_physics.cpp` | `jal` at 0x8004A87C |
@@ -177,6 +178,7 @@ The symbol map (`config/symbol_addrs.txt`) keeps the tree's names; ours enter it
 | `0x8006FCF4` | `g_apMainDrawEntityList` | `RenderQueue` | `titles/spyro1/core/moby/native_moby_lists.cpp` |  |
 | `0x800712F4` | `g_anActorDrawList` | `DrawsMoby` | `titles/spyro1/core/frame/dragon_shrink.cpp` | g_SonyImage.u.m_Draw: unk_0x1600, set when the setup found a moby to draw, then the two scale vectors at unk_0x161C and unk_0x1622. |
 | `0x800720F4` | `g_apSpritePrimQueue` | `ShadedMobyList` | `titles/spyro1/core/moby/native_shaded_moby_queue.cpp` | g_SonyImage.m_ShadedMobys |
+| `0x800724F4` | `g_anActorShadowQueue` | `TallyGems` | `titles/spyro1/core/frame/draw_motion.h` | The level-transition tally's gem records, which AnimateGemTallyParticles points g_pGemTallyParticleRecords at each tick. |
 | `0x800730EC` | `g_dwSpuLiveKeyOnMask` | `SpuKeyStatus` | `titles/spyro1/core/audio/spu_library.h` | The keys the SPU holds down. |
 | `0x800730F0` | `g_nSpuTransferMode` | `SpuTransferMode` | `titles/spyro1/core/audio/native_spu_transfer_mode.cpp` | The two words the body stores through, each its own `lui $at,0x8007` plus a 16-bit displacement at 0x8005CB9C and 0x8005CBA4. The first is the mode itself, read back at 0x8005CBB4; the second only ever holds 1 or 0 and is read as a boolean  |
 | `0x80073114` | `g_dwSpuDeferredKeyOnMask` | `SioKeyBits` | `titles/spyro1/core/audio/native_audio_key_state.cpp` |  |
@@ -196,10 +198,11 @@ The symbol map (`config/symbol_addrs.txt`) keeps the tree's names; ours enter it
 | `0x8007566C` | `g_nCutsceneId` | `CutsceneIdx` | `titles/spyro1/core/hud/native_pause_menu.cpp` |  |
 | `0x8007567C` | `g_pfnFlightResultsDraw` | `Gamestate7DrawHook` | `titles/spyro1/core/moby/native_level_globals_table.cpp` | g_pfnGamestate7DrawHook |
 | `0x80075680` | `g_pPathTableHead` | `CutsceneLayout` | `titles/spyro1/core/guest_globals.h` | g_CutsceneLayout (loaders.c), written once at 0x80014A38; m_CurrentTick is its first word. |
-| `0x8007568C` | `g_nMenuTickFrames` | `NoButtonTicks` | `titles/spyro1/core/hud/native_pause_menu.cpp` |  |
+| `0x8007568C` | `g_nMenuTickFrames` | `MenuTicks` | `titles/spyro1/core/guest_globals.h` | The menu states' update tick. |
 | `0x80075690` | `g_nFlightLevelActive` | `IsFlightLevel` | `titles/spyro1/core/frame/draw_section.cpp` |  |
 | `0x80075694` | `g_pfnLevelEndFlightRun` | `FallImpactCallback` | `titles/spyro1/core/moby/native_level_globals_table.cpp` | g_pfnLevelFallImpactCallback |
 | `0x800756A4` | `g_nActorPoolLiveCount` | `DynMobyCount` | `titles/spyro1/core/moby/native_moby_allocator.cpp` | g_DynMobyCount (moby.h:507), bumped once per call before either pool is touched. |
+| `0x800756AC` | `g_nLevelTransitionPhase` | `TallyPhase` | `titles/spyro1/core/frame/draw_motion.h` |  |
 | `0x800756B0` | `g_nLevelTransitionTallyActive` | `LevelTransHudActive` | `titles/spyro1/core/guest_globals.h` | g_LevelTransHudActive: func_8002DA74 ends the level-transition tally by clearing it. |
 | `0x800756BC` | `g_pfnLevelAdvanceEmitList` | `Gamestate0LateHook` | `titles/spyro1/core/moby/native_level_globals_table.cpp` | g_pfnGamestate0LateHook |
 | `0x800756C0` | `g_nLetterboxBarHeight` | `BorderSize` | `titles/spyro1/core/frame/draw_motion.h` | The section's own counters: the border height and portal yaw it ages before reading, the field tick the portal pulse reads and the specular time the life orbs pulse with (& 0xFF). |
@@ -214,7 +217,7 @@ The symbol map (`config/symbol_addrs.txt`) keeps the tree's names; ours enter it
 | `0x8007570C` | `g_nCinematicActive` | `ScreenBorder` | `titles/spyro1/core/frame/draw_section.cpp` |  |
 | `0x80075710` | `g_pSpriteRecordWriteCursor` | `HudMobys` | `titles/spyro1/core/guest_globals.h` | g_HudMobys and D_800756FC: screen-space mobys a frame builds (text, menus) are taken 0x58 bytes at a time down from the arena end, which GamestateDraw sets 0x1C000 past the draw buffer's packets. |
 | `0x80075714` | `g_nDemoMode` | `DemoMode` | `titles/spyro1/core/frame/draw_section.cpp` |  |
-| `0x80075720` | `g_nPauseMenuCursor` | `SelectedOption` | `titles/spyro1/core/hud/native_pause_menu.cpp` |  |
+| `0x80075720` | `g_nPauseMenuCursor` | `PauseMenuCursor` | `titles/spyro1/core/guest_globals.h` |  |
 | `0x8007572C` | `g_dwGamestateFrames` | `GameTick` | `titles/spyro1/core/guest_globals.h` |  |
 | `0x80075734` | `g_pfnLevelUpdateActors` | `UpdateMoby` | `titles/spyro1/core/hud/native_pause_menu.cpp` |  |
 | `0x80075738` | `g_pEmitListWriteCursor` | `PoolCursor` | `titles/spyro1/core/effect/native_particle_alloc.cpp` |  |
@@ -252,7 +255,7 @@ The symbol map (`config/symbol_addrs.txt`) keeps the tree's names; ours enter it
 | `0x800758A8` | `g_pfnLevelOnSaveMenuExit` | `PrimaryTailHook1` | `titles/spyro1/core/moby/native_level_globals_table.cpp` | _DAT_800758a8 |
 | `0x800758B0` | `g_nPrimBufferOverflowFlag` | `DrawSectionUnread` | `titles/spyro1/core/frame/draw_section.cpp` |  |
 | `0x800758B4` | `g_nNextLevelId` | `NextLevelId` | `titles/spyro1/core/guest_globals.h` |  |
-| `0x800758B8` | `g_nMenuDrawFrames` | `MenuDraws` | `titles/spyro1/core/frame/draw_section.cpp` |  |
+| `0x800758B8` | `g_nMenuDrawFrames` | `MenuDraws` | `titles/spyro1/core/guest_globals.h` | The menu states' draw count; GS_ExitLevel counts its passes in it. |
 | `0x800758BC` | `g_nPortalCount` | `PortalCount` | `titles/spyro1/core/guest_globals.h` |  |
 | `0x800758C4` | `g_pfnFlightTimeFormatter` | `SecondaryHook1` | `titles/spyro1/core/moby/native_level_globals_table.cpp` | _DAT_800758c4 |
 | `0x800758C8` | `g_nVblankTickCount` | `LevelTicks` | `titles/spyro1/core/guest_globals.h` | The main loop's clocks: g_LevelTicks per field from VSync, g_GameTick per GS_Playing update, g_UnprocessedFrames, g_DeltaTime, g_StateSwitch. |
@@ -264,6 +267,7 @@ The symbol map (`config/symbol_addrs.txt`) keeps the tree's names; ours enter it
 | `0x800758FC` | `g_nPortalSkyPitchTilt` | `SkyPitch` | `titles/spyro1/render/portals.h` |  |
 | `0x80075900` | `g_nFlightQuitFlag` | `ExitLevelFlag` | `titles/spyro1/core/hud/native_pause_menu.cpp` |  |
 | `0x8007590C` | `g_nCameraShakeDuration` | `ScreenShakeSecond` | `titles/spyro1/core/camera/native_camera.cpp` | D_8007590C |
+| `0x80075910` | `g_nTransitionSkyPitchTilt` | `SkyTilt` | `titles/spyro1/core/frame/draw_motion.h` |  |
 | `0x80075914` | `g_dwActiveCameraOptions` | `CameraMode` | `titles/spyro1/core/execution/native_level_initialization.cpp` |  |
 | `0x80075918` | `g_nScreenFadeLevel` | `GuestGlobalsFade` | `titles/spyro1/core/guest_globals.h` | g_Fade: the screen fade GamestateDraw and TitlescreenDraw draw while it is non-zero. |
 | `0x8007591C` | `g_nPortalDistanceFogEnabled` | `SkipLowPolyWorld` | `titles/spyro1/core/guest_globals.h` | g_SkipLowPolyWorld: non-zero skips the far terrain pass; the actor emitter parks it in ZSF3 for fog. |
@@ -574,8 +578,10 @@ Addresses inside a function (return addresses, branch joins) the port hooks or r
 | `0x80012284` | `main+0x80` | `FrameDrawReturn` | `titles/spyro1/core/frame/frame_draw.cpp` |  |
 | `0x800195CC` | `EnqueueHudSprites+0x2CC` | `OrbQuadReturn` | `titles/spyro1/render/hud_anchor.h` | The return addresses of the two rows' calls (jal at 800195C4 and 8001965C). |
 | `0x80019664` | `EnqueueHudSprites+0x364` | `EggQuadReturn` | `titles/spyro1/render/hud_anchor.h` |  |
+| `0x8001A334` | `LevelTransition_Draw+0x2E4` | `LevelTransitionTail` | `titles/spyro1/core/frame/draw_section.cpp` |  |
 | `0x8001BEC8` | `PauseMenu_Draw+0x1ABC` | `LinkReturn` | `titles/spyro1/render/inventory_band.h` | Return address of the band's AddPrimToOT. |
 | `0x8001C598` | `PauseMenu_Draw+0x218C` | `MenuFlatten` | `titles/spyro1/core/frame/draw_section.cpp` |  |
+| `0x8001C96C` | `MenuTransition_Draw+0x2D8` | `ExitLevelTail` | `titles/spyro1/core/frame/draw_section.cpp` |  |
 | `0x8001D31C` | `DragonRescue_Draw+0x340` | `ScaleBlock` | `titles/spyro1/core/frame/dragon_shrink.h` | The scale block's first instruction, after func_8001F158 returns, and where its branches join. |
 | `0x8001D438` | `DragonRescue_Draw+0x45C` | `ScaleBlockEnd` | `titles/spyro1/core/frame/dragon_shrink.h` |  |
 | `0x8001D644` | `DragonRescue_Draw+0x668` | `DragonTail` | `titles/spyro1/core/frame/draw_section.cpp` |  |

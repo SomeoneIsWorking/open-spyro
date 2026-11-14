@@ -152,6 +152,14 @@ Statuses: ✅ re-verified · 🟡 re-partial · 🔬 in-progress · ⬜ todo · 
 - gap: none
 - notes: psx-spyro S020.
 
+### spyro1.held-draws — the GamestateDraw states paced at two fields, their device work and moving inputs
+- status: re-verified
+- deps: spyro1.story-intro-cadence
+- evidence: GamestateDraw 0x8001ED5C (src/c/GamestateDraw.c) sends GS_LEVEL_LOAD (1) and GS_ARRIVAL_CAMERA (9) to LevelTransition_Draw 0x8001A050, GS_MENU_TRANSITION (10) to MenuTransition_Draw 0x8001C694 and GS_RESPAWN/GS_GAME_OVER (4/5) to RespawnOrGameOver_Draw 0x8001CA38; GS_UNUSED_6 has no setter. RespawnOrGameOver_Draw ends every branch with one VSync(0) and no `VSync(-1) - last < 2` wait, so like StoryIntro_Draw each field is a logic frame. LevelTransition_Draw (src/c/LevelTransition_Draw.c) touches no device before the DrawSync at 0x8001A334, where every path joins; it reads g_nLevelTransitionPhase 0x800756AC (AnimateGemTallyParticles 0x8002DA74 adds g_nFrameStep a tick) for the tally's slides, counts and glyph rocking, the gem records in g_anActorShadowQueue 0x800724F4 (g_pGemTallyParticleRecords is pointed there each tick; x, y at +0, spin at +0xC, live at +8, velocities drawn once at spawn at +4), Spyro, and lowers g_nTransitionSkyPitchTilt 0x80075910 by 2 before reading it. MenuTransition_Draw (src/c/MenuTransition_Draw.c) switches on g_nMenuDrawFrames 0x800758B8: pass 0 calls PutDrawEnv, LoadImage of the backdrop CLUT shifted by g_nMenuTickFrames 0x8007568C, and DrawSync before its quads; pass 1 stores g_nFadeProgress 0x8007575C = (0x20 - g_nMenuTickFrames) << 7 (0x8001C8BC..0x8001C8C8), ComputeDepthCuedColor's colour into the back DRAWENV's r0/g0/b0, then PutDrawEnv and EmitSkyMeshFogged; both reach LinkOTPrimitives(0x800) at 0x8001C96C before DrawOTag. SpyroStateDelay_Update 0x8002E084 raises g_nMenuTickFrames by one a tick. SnapCameraToTarget 0x80034C84 is called only by UpdateCameraSpringForMode's CAM_MODE_HAZARD spring path (0x80036A08) and UpdateLevelTransitionCamera (0x80037B40, every GS_LEVEL_LOAD tick), each after stepping the springs, so it seats a continuously moving eye; the camera reset is ResetCameraStateToTarget 0x80034358.
+- where: titles/spyro1/core/frame/draw_section.cpp, draw_motion.h, exit_fade.*, draw_cuts.*
+- gap: pass 0's backdrop darkening is a whole-entry CLUT shift by LoadImage, which a replay cannot upload; pass 1's background is the DRAWENV clear colour PutDrawEnv sends, outside the chain a replay links
+- notes: psx-spyro S020.
+
 ## Spyro 1 override differential coverage
 
 Moved from the override sources; each line is the route evidence for one native body.
