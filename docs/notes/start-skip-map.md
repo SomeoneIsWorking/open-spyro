@@ -73,8 +73,14 @@ the conclusion drawn from it, are unchanged.
   chain. That chain is now functional (issue 0027 resolution), so no PC state poke is justified.
 
 Repeated synthetic Start pulses are not a shipping skip mechanism: once the sequence hands off to
-gameplay, another pulse opens the pause screen. A shipping implementation must consume one host edge
-inside a positively identified skippable state and release it before the next state reads input.
+gameplay, another pulse opens the pause screen. One press is one edge: `PadVSync` ORs each field's new
+buttons into `g_Pad.m_Down` (and the buffered `m_Down` words) until an update runs, and the next field
+after it overwrites them, so exactly one update reads a press. The host pad's edge leads the guest's
+`g_Pad` by a field or more, so a port skip reads its press from `g_Pad.m_Down` at the start of the update,
+as the guest's own update would, and after the terminal takes Start and Cross out of those `m_Down` words
+and puts the skip buttons held before it back into `m_Held`. The level flyby's terminal `LoadLevel(1)`
+runs `LoadLevelScene`, whose `PadReset` clears `m_Held`; a Start still held would then come back as a new
+edge (`~m_Held & input`) and GS_Playing would open the pause menu on it.
 
 ## The card before the intro (`TSD_Cutscene`), recovered and cancelled
 
@@ -223,9 +229,15 @@ Each of these has a named natural terminal writer but no exercised route, so non
   arbitrary point of the chain leaves it at 0 or 1. `D_800758B8` is the pause menu's frame counter
   (read by `func_8001A40C`, the gamestate 2/3 draw) and the gamestate 10 draw's case selector
   (`func_8001C694`); nothing else writes it during the glide.
-- `GS_Dragon = 8`: blocked earlier than input; it has no native producer at all (issue 0103). Its own
-  update does read the pad — `0x80030CD4 andi $v0, $v0, 0x40` on `g_Pad.m_Down`, i.e. **Cross** — but
-  that advances the cutscene's own dialogue script, it is not a skip.
+- `GS_Dragon = 8` (`func_8002F3E4`): m_State 4 is the dragon's speech. It leaves for m_State 5 at
+  `0x80030D54` (StopSound on the voice, the camera put on the camera track's last frame, Spyro's
+  animation reset) once `m_CutsceneTicks` (`+0x3C`) reaches twice the track length `unk_0x4C`. Its own
+  skip is Cross on `g_Pad.m_Down` (`0x80030CD4 andi 0x40`): when the rescued dragon's props word 13
+  (`m_RescuedDragonMoby->m_Props + 0x34`) is zero it sets `$s4` and takes that same branch; when it is
+  non-zero the press only starts `unk_0x5C`, a counter nothing reads, so retail refuses the skip for
+  those dragons. The port's Start/Cross skip brings `m_CutsceneTicks` to twice the track length, so the
+  state's own test takes that branch on the next update, for every dragon. m_States 0-3 (fly-in,
+  crystal break) and 5-7 (shrink, return) read no pad.
 - `GS_GameOver = 5`: **retail skips this one itself, on held Start**, and no document here said so
   until then. `func_8002EDF0` at `0x8002F338` tests `g_Pad.m_Held & 0x800` once
   `g_GameOverTicks >= 0x169` and `g_LoadStage >= 0xB`, then calls `0x8002F344 jal func_8003FDC8`, sets
@@ -236,14 +248,12 @@ Each of these has a named natural terminal writer but no exercised route, so non
 - `GS_Balloonist = 12`: **reads no pad word at all** — 0 of `func_800324D8`'s 338 instructions form
   `g_Pad`, and its terminal is `.L800329CC`'s `jalr $v0` through the level-supplied pointer
   `D_8007574C`, which is not an address in the resident image. No route, and no way to invent one.
-- `GS_Cutscene = 14`: CORRECTED 2026-09-14 — this state is NOT without a cancellation. The intro
-  cutscene (`g_CutsceneIdx == 1`, "In the World of Dragons") is skipped BY THE GUEST while Start or
-  Cross is HELD: `gamestates/update.c:GamestateCutsceneUpdate` shortens the layout's duration once
+- `GS_Cutscene = 14`: the intro cutscene (`g_CutsceneIdx == 1`) is skipped BY THE GUEST while Start
+  or Cross is HELD: `gamestates/update.c:GamestateCutsceneUpdate` shortens the layout's duration once
   `m_CurrentTick >= 241` and before the final 32 ticks (`m_Duration = (tick >> 1) + 16`), so the
-  cutscene still reaches its own terminal condition and calls the guest's `EndCutscenePlayback()`.
-  That is the same accelerate-toward-natural-terminal shape used by recorded playback, and it is a
-  complete route, so no native skip may be added here: a second mechanism would duplicate a live
-  guest one. What is missing is measurement, not implementation (below).
+  cutscene fades out and reaches `EndCutscenePlayback()`. Before tick 241 the press is refused. The
+  port's Start/Cross skip takes only that refused range, with the same `m_Duration` write on the tick the
+  update will see (`m_CurrentTick + g_DeltaTime`); from 241 the guest's own held test stays the owner.
 
 ## Measured boot timeline, and the harness gap that hid this
 
